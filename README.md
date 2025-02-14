@@ -16,7 +16,7 @@ Inspired by [DeepSeek-R1](https://github.com/deepseek-ai/DeepSeek-R1) and [open-
 - We supply 0.75k/1.5k/7.5k dataset for fast train loop
 - We logging GRPO online sampling data to log file
 
-[ ] support QLoRA GRPO Training
+- [ ] support QLoRA GRPO Training
 
 ## News
 
@@ -128,7 +128,7 @@ and we check log file: `./output/test.log`
 
 ## Todo
 
-- support QloRA GRPO Trainning
+- support QLoRA GRPO Trainning
 - Release 7B config/result
 - add more rule reward
 - support more base model
