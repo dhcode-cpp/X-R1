@@ -2,15 +2,64 @@
 
 import re
 from typing import Dict
+import os
+from openai import OpenAI
 from latex2sympy2_extended import NormalizationConfig
 from math_verify import LatexExtractionConfig, parse, verify
 
+# Initialize OpenAI client
+client = OpenAI(
+    api_key="",
+    base_url=""
+)
+
+def normalize_text(text):
+    """Normalize text by removing extra whitespace, converting to lowercase."""
+    if text is None:
+        return ""
+    # Remove extra whitespace and convert to lowercase
+    text = re.sub(r'\s+', ' ', text.strip().lower())
+    return text
+
+def extract_answer(text):
+    """Extract content between <answer> tags."""
+    if text is None:
+        return ""
+    match = re.search(r'<answer>(.*?)</answer>', text, re.DOTALL)
+    if match:
+        return match.group(1).strip()
+    return text.strip()
+
+def evaluate_answer_similarity(answer, solution):
+    """Use GPT4O-mini to evaluate answer similarity."""
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are a medical answer evaluator. Compare the student's answer with the correct solution and output ONLY '1.0' if they match in meaning, or '0.0' if they don't match. No other output is allowed."
+                },
+                {
+                    "role": "user",
+                    "content": f"Student answer: {answer}\nCorrect solution: {solution}\nOutput only 1.0 or 0.0:"
+                }
+            ],
+            temperature=0
+        )
+        result = response.choices[0].message.content.strip()
+        return float(result)
+    except Exception as e:
+        print(f"Error in GPT evaluation: {e}")
+        # If API call fails, fall back to simple text matching
+        return 1.0 if normalize_text(answer) == normalize_text(solution) else 0.0
 
 def accuracy_reward(completions, solution, **kwargs):
     """Reward function that checks if the completion is the same as the ground truth."""
     contents = [completion[0]["content"] for completion in completions]
     rewards = []
     for content, sol in zip(contents, solution):
+        # First try latex parsing
         gold_parsed = parse(
             sol,
             extraction_mode="first_match",
@@ -44,8 +93,13 @@ def accuracy_reward(completions, solution, **kwargs):
             print('-'*100)
             print('\nanswer_parsed:', answer_parsed, '\ngold_parsed:', gold_parsed, '\nreward:', reward)
         else:
-            reward = 1.0
-            print("Failed to parse gold solution: ", sol)
+            # For medical text answers, extract from <answer> tags and use GPT4O-mini for evaluation
+            answer_content = extract_answer(content)
+            normalized_content = normalize_text(answer_content)
+            normalized_solution = normalize_text(sol)
+            reward = evaluate_answer_similarity(normalized_content, normalized_solution)
+            print('-'*100)
+            print('\nanswer_parsed:', normalized_content, '\ngold_parsed:', normalized_solution, '\nreward:', reward)
         rewards.append(reward)
 
     print('\naccuracy rewards:', rewards)

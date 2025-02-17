@@ -146,6 +146,13 @@ def main(script_args, training_args, model_args):
     # Load the dataset
     dataset = load_dataset(script_args.dataset_name, name=script_args.dataset_config)
 
+    # align the dataset
+    if script_args.dataset_name == "FreedomIntelligence/medical-o1-verifiable-problem":
+        dataset = dataset.rename_columns({
+            "Open-ended Verifiable Question": "problem",
+            "Ground-True Answer": "solution"
+        })
+
     # Get reward functions
     REWARD_FUNCS_REGISTRY = {
         "accuracy": accuracy_reward,

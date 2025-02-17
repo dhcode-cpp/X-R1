@@ -1,0 +1,62 @@
+# This is X-R1(https://github.com/dhcode-cpp/X-R1) project training config:
+# required >=  4x3090(24G)/4090(24G)
+# running time ~1h
+
+
+# ```shell
+# ACCELERATE_LOG_LEVEL=info \
+# accelerate launch \
+# --config_file recipes/zero3.yaml \
+# --num_processes=2 \
+# src/x_r1/grpo.py \
+# --config recipes/examples/medical_zero_3B_config.yaml \
+# > ./output/mathcn_3B_sampling.log 2>&1
+# ```
+
+
+# Model arguments
+model_name_or_path: Qwen/Qwen2.5-3B
+model_revision: main
+torch_dtype: bfloat16
+attn_implementation: flash_attention_2
+
+# Data training arguments
+dataset_name: FreedomIntelligence/medical-o1-verifiable-problem
+dataset_configs:
+- train
+num_processes: 3
+
+# GRPO trainer config
+bf16: true
+use_vllm: true
+vllm_device: auto
+vllm_gpu_memory_utilization: 0.7
+do_eval: no
+eval_strategy: "no"
+eval_steps: 10
+gradient_accumulation_steps: 4
+gradient_checkpointing: true
+gradient_checkpointing_kwargs:
+  use_reentrant: false
+hub_model_id: Qwen/Qwen2.5-3B
+hub_strategy: every_save
+learning_rate: 3.0e-06
+log_level: info
+logging_steps: 10
+logging_strategy: steps
+lr_scheduler_type: cosine
+max_prompt_length: 256
+num_generations: 4
+max_completion_length: 1024
+max_steps: -1
+num_train_epochs: 2
+output_dir: output/X-R1-Qwen2.5-3B-Instruct-cn-medical
+overwrite_output_dir: true
+per_device_eval_batch_size: 1
+per_device_train_batch_size: 1
+push_to_hub: False
+report_to:
+- wandb
+save_strategy: "epoch"
+seed: 42
+warmup_ratio: 0.1
