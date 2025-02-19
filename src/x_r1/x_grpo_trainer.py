@@ -152,7 +152,6 @@ class XGRPOTrainer(GRPOTrainer):
             # If PEFT is used, the reference model is not needed since the adapter can be disabled
             # to revert to the initial model.
             self.ref_model = None
-        self.ref_model = None
         
         print('ref_model', self.ref_model)
 
