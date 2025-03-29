@@ -19,7 +19,7 @@ safetensors>=0.3.3
 sentencepiece>=0.1.99
 torch==2.5.1
 transformers==4.48.2
-trl==0.15.2
+trl==0.16.0.dev0
 trl@git+https://github.com/huggingface/trl.git@019fc6dbaa03b888f9d5c1845f0f690da8ed310c#egg=trl[main]
 vllm==0.7.2
 wandb>=0.19.1
